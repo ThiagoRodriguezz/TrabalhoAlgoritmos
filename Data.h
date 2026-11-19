@@ -3,7 +3,6 @@
 
 // Dependencias
 
-#include <iostream>
 #include <string>
 
 // Definição da Classe
@@ -29,9 +28,9 @@ class Data
         
         // setters
 
-        bool setDia  (int);
-        bool setMes  (int);
-        bool setAno  (int);
+        bool setDia  (int n);
+        bool setMes  (int n);
+        bool setAno  (int n);
         bool setData (int dia, int mes, int ano);
         
         // getters
@@ -44,10 +43,11 @@ class Data
 
         std::string mesExtenso();
         int             diaMes();
-        bool        dataValida();
         void       escreveData();
         void            leData();
-
+        bool          eBisexto( int ano );
+        bool        dataValida();
+        bool        dataValida( int dia, int mes, int ano );
 
 };
 

@@ -31,6 +31,11 @@
 
     }
 
+// Destrutor
+
+    Data::~Data()
+    {
+    }
 
 // Setters
 
@@ -141,24 +146,30 @@ int Data::diaMes ()
         
 }
 
+// RESOLVER O ESCREVE DATA PROVAVELMENTE VAI TER Q TRATAR COMO STRING E TAMBEM RESOLVER O DATA VALIDA
 
 void Data::escreveData()
 {
-    int dia; int mes; int ano;
+    int dia, mes, ano;
+    bool valida;
 
     do {
-    
-        std::cout << "Entre com a data no formato[dd/mm/aaaa]: ";
-        std::cin>> dia >> mes >> ano;
+        std::cout << "Entre com a data no formato [dd/mm/aaaa]: ";
 
-        if ( !dataValida(dia,mes,ano) )
+        valida = (std::scanf("%d/%d/%d", &dia, &mes, &ano) == 3)
+                 && dataValida(dia, mes, ano);
+
+        // descarta o resto da linha 
+        int c;
+        while ((c = std::getchar()) != '\n' && c != EOF);
+
+        if (!valida)
         {
-            std::cout<< "ERRO: Data invalida.\nInsira novamente."<< std::endl;
+            std::cout << "\nERRO: Data invalida.\nInsira novamente.\n\n";
         }
-        } while( !dataValida(dia,mes,ano));
+    } while (!valida);
 
-    setData(dia,mes,ano);
-
+    setData(dia, mes, ano);
 }
 
 void Data::leData()
@@ -168,7 +179,7 @@ void Data::leData()
 
 // Inicio da função de validação de data dd/mm/yyyy..
 
-bool eBisexto( int ano )
+bool Data::eBisexto( int ano )
 {
     bool bisexto = false;
 
