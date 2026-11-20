@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <cctype>
+#include <cstring>
 
 
 // Metodos da Classe Data
@@ -14,9 +15,9 @@
 
     Data::Data()
     {
-        this->dia = 0;
-        this->mes = 0;
-        this->ano = 0;
+        this->dia = 1;
+        this->mes = 1;
+        this->ano = 1999;
     }
 
     Data::Data( int dia, int mes, int ano )
@@ -25,10 +26,6 @@
         if ( dataValida(dia, mes, ano))
         {
             setData(dia, mes, ano);
-        }
-        else
-        {
-            escreveData();
         }
 
     }
@@ -92,59 +89,82 @@ bool Data::setData( int dia, int mes, int ano )
 
 // Getters
 
-int Data::getDia()
+int Data::getDia() const
 {
     return this->dia;
 }
 
-int Data::getMes()
+int Data::getMes() const
 {
     return this->mes;
 }
 
-int Data::getAno()
+int Data::getAno() const
 {
     return this->ano;
 }
 
-// Funções Complementares
+// Funções da Classe
+
+bool Data::dataValida()
+{
+    int dia = this->dia;
+    int mes = this->mes;
+    int ano = this->ano;
+
+    if (mes < 1 || mes > 12)
+        return false;
+
+    if (dia < 1)
+        return false;
+
+    if (dia > diaMes(mes, ano))
+        return false;
+
+    if (dia == 29 && mes == 2 && !eBisexto(ano))
+        return false;
+
+    return true;
+}
+
+bool Data::dataValida(int dia, int mes, int ano)
+{
+    if (mes < 1 || mes > 12)
+        return false;
+
+    if (dia < 1)
+        return false;
+
+    int diasM[12] = {
+        31, 28, 31, 30,
+        31, 30, 31, 31,
+        30, 31, 30, 31
+    };
+
+    if (eBisexto(ano))
+        diasM[1] = 29;
+
+    if (dia > diasM[mes - 1])
+        return false;
+
+    return true;
+}
 
 std::string Data::mesExtenso()
 {
 
-    std::string mes[12] {
+
+    static const std::string mes[12] {
                             "Janeiro", "Fevereiro", "Março",
                             "Abril",   "Maio",      "Junho", 
                             "Julho",   "Agosto",    "Setembro", 
                             "Outubro", "Novembro",  "Dezembro"
                         };
 
+    if (this->mes < 1 || this->mes > 12)
+        return "Mês invalido.";
+            
     return mes[this->mes-1];
-}
-
-int Data::diaMes()
-{
-    int mes = getMes();
-    int ano = getAno();
-
-    if (mes < 1 || mes > 12)
-        return 0;
-
-    int diasM[12] = {
-        31, 28, 31,
-        30, 31, 30,
-        31, 31, 30,
-        31, 30, 31
-    };
-
-    int mesAlvo = diasM[mes - 1];
-
-    if (eBisexto(ano) && mes == 2)
-    {
-        mesAlvo = 29;
-    }
-
-    return mesAlvo;
 }
 
 int Data::diaMes(int mes, int ano)
@@ -168,8 +188,6 @@ int Data::diaMes(int mes, int ano)
 
     return mesAlvo;
 }
-
-
 
 void Data::escreveData()
 {
@@ -199,6 +217,27 @@ void Data::escreveData()
 
 }
 
+
+void Data::leData()
+{
+    std::cout << "" << getDia() << "/" << "" << getMes() << "/" << getAno() << std::endl;
+}
+
+
+// Funções complementares
+
+bool Data::eBisexto( int ano )
+{
+    bool bisexto = false;
+
+    if ( (ano % 400 == 0) || (ano % 4 == 0 && ano % 100 != 0) )
+    {
+        bisexto = true;
+    }
+
+    return bisexto;
+}
+
 bool Data::formataData(const char texto[], char formatado[])
 {
     int posFinal = strlen(texto);
@@ -207,14 +246,9 @@ bool Data::formataData(const char texto[], char formatado[])
         return false;
 
     char *posPB = nullptr;
-    char *negativo = nullptr;
 
-    int tamFormatadoMAX = 11;
     int posicaoBarra1 = 0;
     int posicaoBarra2 = 0;
-    int posSinalNegativo = 0;
-
-    bool anoNegativo = false;
 
     // Procura a primeira barra
     posPB = (char*)strchr(texto, '/');
@@ -283,14 +317,10 @@ bool Data::formataData(const char texto[], char formatado[])
 
     // Verifica se o ano é negativo
 
-    negativo = (char*)strchr(posPB + 1, '-');
-
     int inicioAno = posicaoBarra2 + 1;
 
     if (texto[inicioAno] == '-')
     {
-        anoNegativo = true;
-        posSinalNegativo = inicioAno;
         formatado[pos++] = '-';
         inicioAno++;
     }
@@ -318,7 +348,6 @@ bool Data::formataData(const char texto[], char formatado[])
     }
 
     formatado[pos] = '\0';
-
 
     return true;
 }
@@ -352,69 +381,3 @@ bool Data::textToNum(const char data[])
     return setData(dia, mes, ano);
 }
 
-
-void Data::leData()
-{
-    std::cout << "" << getDia() << "/" << "" << getMes() << "/" << getAno() << std::endl;
-}
-
-// Inicio da função de validação de data dd/mm/yyyy..
-
-bool Data::eBisexto( int ano )
-{
-    bool bisexto = false;
-
-    if ( (ano % 400 == 0) || (ano % 4 == 0 && ano % 100 != 0) )
-    {
-        bisexto = true;
-    }
-
-    return bisexto;
-}
-
-
-bool Data::dataValida()
-{
-    int dia = this->dia;
-    int mes = this->mes;
-    int ano = this->ano;
-
-    if (mes < 1 || mes > 12)
-        return false;
-
-    if (dia < 1)
-        return false;
-
-    if (dia > diaMes(mes, ano))
-        return false;
-
-    if (dia == 29 && mes == 2 && !eBisexto(ano))
-        return false;
-
-    return true;
-}
-
-bool Data::dataValida(int dia, int mes, int ano)
-{
-    if (mes < 1 || mes > 12)
-        return false;
-
-    if (dia < 1)
-        return false;
-
-    int diasM[12] = {
-        31, 28, 31, 30,
-        31, 30, 31, 31,
-        30, 31, 30, 31
-    };
-
-    if (eBisexto(ano))
-        diasM[1] = 29;
-
-    if (dia > diasM[mes - 1])
-        return false;
-
-    return true;
-}
-
-// Fim das funções de validação de data dd/mm/yyyy.

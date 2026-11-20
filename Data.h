@@ -35,22 +35,27 @@ class Data
         
         // getters
 
-        int getDia();
-        int getMes();
-        int getAno();
+        int getDia() const;
+        int getMes() const;
+        int getAno() const;
+
+        // Funções da classe
+
+        bool        dataValida();
+        bool        dataValida( int dia, int mes, int ano );
+
+        std::string mesExtenso();
+
+        static int      diaMes( int mes, int ano );
+
+        void       escreveData();
+        void            leData();
 
         // Funções complementares
 
-        std::string mesExtenso();
-        int             diaMes();
-        int             diaMes(int mes, int ano);
-        void       escreveData();
-        void            leData();
-        bool          eBisexto( int ano );
-        bool        dataValida();
-        bool        dataValida( int dia, int mes, int ano );
-        bool       formataData(const char texto[], char formatado[]);
-        bool      textToNum(const char data[]);
+        static bool   eBisexto( int ano );
+        bool       formataData( const char texto[], char formatado[] );
+        bool         textToNum( const char data[] );
 
 };
 
