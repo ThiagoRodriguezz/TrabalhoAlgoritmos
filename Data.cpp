@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <string>
+#include <cctype>
+
 
 // Metodos da Classe Data
 
@@ -77,14 +79,14 @@ bool Data::setAno(int ano)
 bool Data::setData( int dia, int mes, int ano )
 {
 
-    bool valido = false;
-    
-    if ( setDia(dia) && setMes(mes) && setAno(ano))
-    {
-        valido = true;
-    }
+    if (!dataValida(dia, mes, ano))
+        return false;
 
-    return valido;
+    this->dia = dia;
+    this->mes = mes;
+    this->ano = ano;
+
+    return true;
 
 }
 
@@ -120,57 +122,236 @@ std::string Data::mesExtenso()
     return mes[this->mes-1];
 }
 
-int Data::diaMes ()
+int Data::diaMes()
 {
-
     int mes = getMes();
     int ano = getAno();
 
-    int diasM[12] = { 
-                      31, 28, 31, 
-                      30, 31, 30,
-                      31, 31, 30, 
-                      31, 30, 31 
-                    };
-    
+    if (mes < 1 || mes > 12)
+        return 0;
 
-    int mesAlvo = diasM[mes-1];
+    int diasM[12] = {
+        31, 28, 31,
+        30, 31, 30,
+        31, 31, 30,
+        31, 30, 31
+    };
 
+    int mesAlvo = diasM[mes - 1];
 
-    if ( eBisexto(ano) && mes == 2 )
+    if (eBisexto(ano) && mes == 2)
     {
-        mesAlvo = 29; 
+        mesAlvo = 29;
     }
 
     return mesAlvo;
-        
 }
 
-// RESOLVER O ESCREVE DATA PROVAVELMENTE VAI TER Q TRATAR COMO STRING E TAMBEM RESOLVER O DATA VALIDA
+int Data::diaMes(int mes, int ano)
+{
+    if (mes < 1 || mes > 12)
+        return 0;
+
+    int diasM[12] = {
+        31, 28, 31,
+        30, 31, 30,
+        31, 31, 30,
+        31, 30, 31
+    };
+
+    int mesAlvo = diasM[mes - 1];
+
+    if (eBisexto(ano) && mes == 2)
+    {
+        mesAlvo = 29;
+    }
+
+    return mesAlvo;
+}
+
+
 
 void Data::escreveData()
 {
     int dia, mes, ano;
-    bool valida;
+    bool valido = false;
 
-    do {
+    char texto[50];
+    char formatado[50];
+
+    do 
+    {
+
         std::cout << "Entre com a data no formato [dd/mm/aaaa]: ";
+        std::cin.getline(texto, 50);
 
-        valida = (std::scanf("%d/%d/%d", &dia, &mes, &ano) == 3)
-                 && dataValida(dia, mes, ano);
-
-        // descarta o resto da linha 
-        int c;
-        while ((c = std::getchar()) != '\n' && c != EOF);
-
-        if (!valida)
+        if ( formataData(texto, formatado) && textToNum(formatado) )
         {
-            std::cout << "\nERRO: Data invalida.\nInsira novamente.\n\n";
+            valido = true;
         }
-    } while (!valida);
+        else
+        {
+            std::cout<< "ERRO. Data ou Formato invalido.\nInsira novamente."<< std::endl;
+        }
 
-    setData(dia, mes, ano);
+
+    } while ( !valido );
+
 }
+
+bool Data::formataData(const char texto[], char formatado[])
+{
+    int posFinal = strlen(texto);
+
+    if (posFinal > 11 || posFinal < 5)
+        return false;
+
+    char *posPB = nullptr;
+    char *negativo = nullptr;
+
+    int tamFormatadoMAX = 11;
+    int posicaoBarra1 = 0;
+    int posicaoBarra2 = 0;
+    int posSinalNegativo = 0;
+
+    bool anoNegativo = false;
+
+    // Procura a primeira barra
+    posPB = (char*)strchr(texto, '/');
+
+    if (posPB == nullptr)
+        return false;
+
+    posicaoBarra1 = posPB - texto;
+
+    // Verifica o tamanho do dia
+    if (posicaoBarra1 < 1 || posicaoBarra1 > 2)
+        return false;
+
+    // Procura a segunda barra
+    posPB = (char*)strchr(posPB + 1, '/');
+
+    if (posPB == nullptr)
+        return false;
+
+    posicaoBarra2 = posPB - texto;
+
+    // Verifica o tamanho do mês
+    int tamMes = posicaoBarra2 - posicaoBarra1 - 1;
+
+    if (tamMes < 1 || tamMes > 2)
+        return false;
+
+    // Verifica se dia e mês possuem apenas dígitos
+    for (int i = 0; i < posicaoBarra1; i++)
+    {
+        if (!std::isdigit(static_cast<unsigned char>(texto[i])))
+            return false;
+    }
+
+    for (int i = posicaoBarra1 + 1; i < posicaoBarra2; i++)
+    {
+        if (!std::isdigit(static_cast<unsigned char>(texto[i])))
+            return false;
+    }
+
+    // Formata o dia
+
+    int pos = 0;
+
+    if (posicaoBarra1 == 1)
+        formatado[pos++] = '0';
+
+    for (int i = 0; i < posicaoBarra1; i++)
+    {
+        formatado[pos++] = texto[i];
+    }
+
+    formatado[pos++] = '/';
+
+    // Formata o mês
+
+    if (tamMes == 1)
+        formatado[pos++] = '0';
+
+    for (int i = posicaoBarra1 + 1; i < posicaoBarra2; i++)
+    {
+        formatado[pos++] = texto[i];
+    }
+
+    formatado[pos++] = '/';
+
+    // Verifica se o ano é negativo
+
+    negativo = (char*)strchr(posPB + 1, '-');
+
+    int inicioAno = posicaoBarra2 + 1;
+
+    if (texto[inicioAno] == '-')
+    {
+        anoNegativo = true;
+        posSinalNegativo = inicioAno;
+        formatado[pos++] = '-';
+        inicioAno++;
+    }
+
+    // Verifica quantidade de dígitos do ano
+
+    int tamAno = posFinal - inicioAno;
+
+    if (tamAno < 1 || tamAno > 4)
+        return false;
+
+    // Verifica se o ano possui somente dígitos
+
+    for (int i = inicioAno; i < posFinal; i++)
+    {
+        if (!std::isdigit(static_cast<unsigned char>(texto[i])))
+            return false;
+    }
+
+    // Copia o ano
+
+    for (int i = inicioAno; i < posFinal; i++)
+    {
+        formatado[pos++] = texto[i];
+    }
+
+    formatado[pos] = '\0';
+
+
+    return true;
+}
+
+bool Data::textToNum(const char data[])
+{
+    int dia, mes, ano = 0;
+
+    dia = (data[0] - '0') * 10 + (data[1] - '0');
+    mes = (data[3] - '0') * 10 + (data[4] - '0');
+
+    int inicioAno = 6;
+    int sinal = 1;
+
+    if (data[inicioAno] == '-')
+    {
+        sinal = -1;
+        inicioAno++;
+    }
+
+    for (int i = inicioAno; data[i] != '\0'; i++)
+    {
+        ano = ano * 10 + (data[i] - '0');
+    }
+
+    ano *= sinal;
+
+    if (!dataValida(dia, mes, ano))
+        return false;
+
+    return setData(dia, mes, ano);
+}
+
 
 void Data::leData()
 {
@@ -193,67 +374,47 @@ bool Data::eBisexto( int ano )
 
 
 bool Data::dataValida()
-{ 
-
-    int dia = this->dia; 
+{
+    int dia = this->dia;
     int mes = this->mes;
     int ano = this->ano;
 
-    bool valido = true;
+    if (mes < 1 || mes > 12)
+        return false;
 
-    if ( dia < 1 || dia > 31 )
-    {
-        valido = false;
-    }
-    
-    if ( mes < 1 || mes > 12 )
-    {
-        valido = false;
-    }
+    if (dia < 1)
+        return false;
 
-    if ( dia == 29 && mes == 2 && !eBisexto(ano))
-    {
-        valido = false;
-    }
+    if (dia > diaMes(mes, ano))
+        return false;
 
-    if ( valido && dia > diaMes() )
-    {
-        valido = false;
-    }
+    if (dia == 29 && mes == 2 && !eBisexto(ano))
+        return false;
 
-
-    return valido;
- 
+    return true;
 }
 
 bool Data::dataValida(int dia, int mes, int ano)
-{ 
+{
+    if (mes < 1 || mes > 12)
+        return false;
 
-    bool valido = true;
+    if (dia < 1)
+        return false;
 
-    if ( dia < 1 || dia > 31 )
-    {
-        valido = false;
-    }
-    
-    if ( mes < 1 || mes > 12 )
-    {
-        valido = false;
-    }
+    int diasM[12] = {
+        31, 28, 31, 30,
+        31, 30, 31, 31,
+        30, 31, 30, 31
+    };
 
-    if ( dia == 29 && mes == 2 && !eBisexto(ano))
-    {
-        valido = false;
-    }
+    if (eBisexto(ano))
+        diasM[1] = 29;
 
-    if ( valido && dia > diaMes() )
-    {
-        valido = false;
-    }
+    if (dia > diasM[mes - 1])
+        return false;
 
-
-    return valido;
- 
+    return true;
 }
 
 // Fim das funções de validação de data dd/mm/yyyy.

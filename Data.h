@@ -43,11 +43,14 @@ class Data
 
         std::string mesExtenso();
         int             diaMes();
+        int             diaMes(int mes, int ano);
         void       escreveData();
         void            leData();
         bool          eBisexto( int ano );
         bool        dataValida();
         bool        dataValida( int dia, int mes, int ano );
+        bool       formataData(const char texto[], char formatado[]);
+        bool      textToNum(const char data[]);
 
 };
 
